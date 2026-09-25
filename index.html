@@ -1,126 +1,61 @@
 <!DOCTYPE html>
-
 <html lang="es">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Javier</title>
-
 <style>
-
   body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a0a12; color: white; margin: 0; padding: 20px; }
-
   #chat { max-width: 500px; margin: 0 auto; }
-
   h2 { text-align: center; color: #a78bfa; }
-
-  .msg { relleno: 12px 16px; radio de borde: 15px; margen: 10px 0; ancho máximo: 85%; altura de línea: 1.4; }
-
+  .msg { padding: 12px 16px; border-radius: 15px; margin: 10px 0; max-width: 85%; line-height: 1.4; }
   .user { background: #4f46e5; margin-left: auto; text-align: right; }
-
   .ai { background: #1f1f2e; border: 1px solid #2a2a3e; }
-
   input { width: 100%; padding: 14px; border-radius: 25px; border: 1px solid #2a2a3e; background: #1f1f2e; color: white; margin-top: 10px; box-sizing: border-box; }
-
-  botón { ancho: 100%; relleno: 14px; radio de borde: 25px; borde: ninguno; fondo: #8b5cf6; color: blanco; margen superior: 8px; grosor de fuente: negrita; tamaño de fuente: 15px; }
-
-  botón:activo { fondo: #7c3aed; }
-
+  button { width: 100%; padding: 14px; border-radius: 25px; border: none; background: #8b5cf6; color: white; margin-top: 8px; font-weight: bold; font-size: 15px; }
+  button:active { background: #7c3aed; }
 </style>
-
 </head>
-
-<cuerpo>
-
+<body>
 <div id="chat">
-
   <h2>Javier</h2>
-
   <div id="messages"></div>
-
   <input id="input" placeholder="A sus órdenes, señor...">
-
   <button onclick="enviar()">Enviar</button>
-
 </div>
 
-
 <script>
-
-const API_KEY = "sk-28ec947ec6d043ba9574c63fa3b9809a";
-
+const API_KEY = "AQ.Ab8RN6L5oNnT2H9hzb-ATAitHqdJGKaL-CWlLmRpwQEnH8LSXQ";
 const messages = document.getElementById("messages");
 
-
-función asíncrona enviar() {
-
+async function enviar() {
   const input = document.getElementById("input");
-
   const texto = input.value.trim();
+  if (!texto) return;
 
-  si (!texto) regresar;
+  messages.innerHTML += `<div class="msg user">${texto}</div>`;
+  input.value = "";
 
-
-  mensajes.innerHTML += `<div class="msg user">${texto}</div>`;
-
-  valor de entrada = "";
-
-  mensajes.scrollTop = mensajes.scrollHeight;
-
-
-  intentar {
-
-    const respuesta = await fetch("https://api.deepseek.com/chat/completions", {
-
-      método: "POST",
-
-      encabezados: {
-
-        "Content-Type": "application/json",
-
-        "Autorización": `Bearer ${API_KEY}`
-
+  try {
+    const respuesta = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + API_KEY, {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
       },
-
-      cuerpo: JSON.stringify({
-
-        modelo: "deepseek-chat",
-
-        mensajes: [
-
-          { role: "system", content: "Eres Javier, el asistente personal inspirado en Jarvis de Iron Man. Hablas con educación, clase y elegancia. Te diriges a tu creador como 'señor' o 'jefe'. Eres formal pero cercano, siempre dispuesto a ayudar. Respondes con precisión, pero con un toque de sofisticación británica. Frases como 'A sus órdenes, señor', 'Permítame, jefe', 'Enseguida, señor' son parte de tu forma de hablar. Nunca eres vulgar Ni directo de más. Tienes un ligero toque de ironía elegante." },
-
-          { rol: "usuario", contenido: texto }
-
-        ]
-
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: "Eres Javier, el asistente personal inspirado en Jarvis de Iron Man. Hablas con educación, clase y elegancia. Te diriges a tu creador como 'señor' o 'jefe'. Eres formal pero cercano, siempre dispuesto a ayudar. Responde con precisión. El usuario dice: " + texto }]
+        }]
       })
-
     });
 
-
-    datos constantes = espera respuesta.json();
-
-    const reply = data.choices[0].message.content;
-
-    mensajes.innerHTML += `<div class="msg ai">${respuesta}</div>`;
-
+    const datos = await respuesta.json();
+    const reply = datos.candidates[0].content.parts[0].text;
+    messages.innerHTML += `<div class="msg ai">${reply}</div>`;
   } catch (error) {
-
-    mensajes.innerHTML += `<div class="msg ai">Disculpe, señor. Parece que hay un problema de conexión.</div>`;
-
+    messages.innerHTML += `<div class="msg ai">Disculpe, señor. Parece que hay un problema de conexión.</div>`;
   }
-
-  mensajes.scrollTop = mensajes.scrollHeight;
-
 }
-
 </script>
-
 </body>
-
 </html>
