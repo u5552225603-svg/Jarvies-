@@ -1,43 +1,57 @@
-export default {
-  async fetch(request) {
-    if (request.method === "OPTIONS") {
-      return new Response(null, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-      });
-    }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Javier</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a0a12; color: white; margin: 0; padding: 20px; }
+  #chat { max-width: 500px; margin: 0 auto; }
+  h2 { text-align: center; color: #a78bfa; }
+  .msg { padding: 12px 16px; border-radius: 15px; margin: 10px 0; max-width: 85%; line-height: 1.4; }
+  .user { background: #4f46e5; margin-left: auto; text-align: right; }
+  .ai { background: #1f1f2e; border: 1px solid #2a2a3e; }
+  input { width: 100%; padding: 14px; border-radius: 25px; border: 1px solid #2a2a3e; background: #1f1f2e; color: white; margin-top: 10px; box-sizing: border-box; }
+  button { width: 100%; padding: 14px; border-radius: 25px; border: none; background: #8b5cf6; color: white; margin-top: 8px; font-weight: bold; font-size: 15px; }
+  button:active { background: #7c3aed; }
+</style>
+</head>
+<body>
+<div id="chat">
+  <h2>Javier</h2>
+  <div id="messages"></div>
+  <input id="input" placeholder="A sus órdenes, señor...">
+  <button onclick="enviar()">Enviar</button>
+</div>
 
-    if (request.method !== "POST") {
-      return new Response("Method not allowed", { status: 405 });
-    }
+<script>
+const messages = document.getElementById("messages");
 
-    const { messages, system } = await request.json();
+async function enviar() {
+  const input = document.getElementById("input");
+  const texto = input.value.trim();
+  if (!texto) return;
 
-    const respuesta = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  messages.innerHTML += `<div class="msg user">${texto}</div>`;
+  input.value = "";
+
+  try {
+    const respuesta = await fetch('https://jarvies-proxy.u5552225603.workers.dev', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer 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`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: system },
-          ...messages
-        ]
+        messages: [{ role: 'user', content: texto }],
+        system: "Eres Javier, el asistente personal inspirado en Jarvis de Iron Man. Hablas con educación, clase y elegancia. Te diriges a tu creador como 'señor' o 'jefe'. Eres formal pero cercano, siempre dispuesto a ayudar. Responde con precisión."
       })
     });
 
     const datos = await respuesta.json();
-
-    return new Response(JSON.stringify(datos), {
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
-  },
-};
+    const reply = datos.choices[0].message.content;
+    messages.innerHTML += `<div class="msg ai">${reply}</div>`;
+  } catch (error) {
+    messages.innerHTML += `<div class="msg ai">Disculpe, señor. Parece que hay un problema de conexión.</div>`;
+  }
+}
+</script>
+</body>
+</html>
