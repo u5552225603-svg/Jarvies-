@@ -25,7 +25,6 @@
 </div>
 
 <script>
-const API_KEY = "AQ.Ab8RN6Ij1dwiV32S7bt0bUf06FmXUBOs3Ry1yJMTjVeqVHLqpg";
 const messages = document.getElementById("messages");
 
 async function enviar() {
@@ -37,20 +36,17 @@ async function enviar() {
   input.value = "";
 
   try {
-    const respuesta = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + API_KEY, {
+    const respuesta = await fetch('https://jarvies-proxy.u5552225603.workers.dev', {
       method: 'POST',
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{
-          parts: [{ text: "Eres Javier, el asistente personal inspirado en Jarvis de Iron Man. Hablas con educación, clase y elegancia. Te diriges a tu creador como 'señor' o 'jefe'. Eres formal pero cercano, siempre dispuesto a ayudar. Responde con precisión. El usuario dice: " + texto }]
-        }]
+        messages: [{ role: 'user', content: texto }],
+        system: "Eres Javier, el asistente personal inspirado en Jarvis de Iron Man. Hablas con educación, clase y elegancia. Te diriges a tu creador como 'señor' o 'jefe'. Eres formal pero cercano, siempre dispuesto a ayudar. Responde con precisión."
       })
     });
 
     const datos = await respuesta.json();
-    const reply = datos.candidates[0].content.parts[0].text;
+    const reply = datos.choices[0].message.content;
     messages.innerHTML += `<div class="msg ai">${reply}</div>`;
   } catch (error) {
     messages.innerHTML += `<div class="msg ai">Disculpe, señor. Parece que hay un problema de conexión.</div>`;
