@@ -1,1 +1,126 @@
-Hola 
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Javier</title>
+
+<style>
+
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a0a12; color: white; margin: 0; padding: 20px; }
+
+  #chat { max-width: 500px; margin: 0 auto; }
+
+  h2 { text-align: center; color: #a78bfa; }
+
+  .msg { relleno: 12px 16px; radio de borde: 15px; margen: 10px 0; ancho máximo: 85%; altura de línea: 1.4; }
+
+  .user { background: #4f46e5; margin-left: auto; text-align: right; }
+
+  .ai { background: #1f1f2e; border: 1px solid #2a2a3e; }
+
+  input { width: 100%; padding: 14px; border-radius: 25px; border: 1px solid #2a2a3e; background: #1f1f2e; color: white; margin-top: 10px; box-sizing: border-box; }
+
+  botón { ancho: 100%; relleno: 14px; radio de borde: 25px; borde: ninguno; fondo: #8b5cf6; color: blanco; margen superior: 8px; grosor de fuente: negrita; tamaño de fuente: 15px; }
+
+  botón:activo { fondo: #7c3aed; }
+
+</style>
+
+</head>
+
+<cuerpo>
+
+<div id="chat">
+
+  <h2>Javier</h2>
+
+  <div id="messages"></div>
+
+  <input id="input" placeholder="A sus órdenes, señor...">
+
+  <button onclick="enviar()">Enviar</button>
+
+</div>
+
+
+<script>
+
+const API_KEY = "AQUI_VA_TU_CLAVE_DE_DEEPSEEK";sk-a695c2e49f1e4f94980abd32f235e024
+
+const messages = document.getElementById("messages");
+
+
+función asíncrona enviar() {
+
+  const input = document.getElementById("input");
+
+  const texto = input.value.trim();
+
+  si (!texto) regresar;
+
+
+  mensajes.innerHTML += `<div class="msg user">${texto}</div>`;
+
+  valor de entrada = "";
+
+  mensajes.scrollTop = mensajes.scrollHeight;
+
+
+  intentar {
+
+    const respuesta = await fetch("https://api.deepseek.com/chat/completions", {
+
+      método: "POST",
+
+      encabezados: {
+
+        "Content-Type": "application/json",
+
+        "Autorización": `Bearer ${API_KEY}`
+
+      },
+
+      cuerpo: JSON.stringify({
+
+        modelo: "deepseek-chat",
+
+        mensajes: [
+
+          { role: "system", content: "Eres Javier, el asistente personal inspirado en Jarvis de Iron Man. Hablas con educación, clase y elegancia. Te diriges a tu creador como 'señor' o 'jefe'. Eres formal pero cercano, siempre dispuesto a ayudar. Respondes con precisión, pero con un toque de sofisticación británica. Frases como 'A sus órdenes, señor', 'Permítame, jefe', 'Enseguida, señor' son parte de tu forma de hablar. Nunca eres vulgar Ni directo de más. Tienes un ligero toque de ironía elegante." },
+
+          { rol: "usuario", contenido: texto }
+
+        ]
+
+      })
+
+    });
+
+
+    datos constantes = espera respuesta.json();
+
+    const reply = data.choices[0].message.content;
+
+    mensajes.innerHTML += `<div class="msg ai">${respuesta}</div>`;
+
+  } catch (error) {
+
+    mensajes.innerHTML += `<div class="msg ai">Disculpe, señor. Parece que hay un problema de conexión.</div>`;
+
+  }
+
+  mensajes.scrollTop = mensajes.scrollHeight;
+
+}
+
+</script>
+
+</body>
+
+</html>
