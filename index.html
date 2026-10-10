@@ -7,7 +7,7 @@
 <style>
   body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a0a12; color: white; margin: 0; padding: 20px; }
   #chat { max-width: 500px; margin: 0 auto; padding-bottom: 120px; }
-  h2 { text-align: center; color: #a78bfa; }
+  h2 { text-align: center; color: #d4af37; }
   .msg { padding: 12px 16px; border-radius: 15px; margin: 10px 0; max-width: 85%; line-height: 1.5; font-size: 15px; }
   .user { background: #4f46e5; margin-left: auto; text-align: right; }
   .ai { background: #1f1f2e; border: 1px solid #2a2a3e; }
@@ -73,15 +73,6 @@ const messages = document.getElementById("messages");
 const orb = document.getElementById("jarvis-orb");
 let historial = [];
 
-// Función para que la página hable
-function hablar(texto) {
-  const mensaje = new SpeechSynthesisUtterance(texto);
-  mensaje.lang = 'es-ES';
-  mensaje.rate = 1;
-  mensaje.pitch = 1;
-  window.speechSynthesis.speak(mensaje);
-}
-
 async function enviar() {
   const input = document.getElementById("input");
   const texto = input.value.trim();
@@ -107,9 +98,6 @@ async function enviar() {
     const reply = datos.choices[0].message.content;
     messages.innerHTML += `<div class="msg ai">${reply}</div>`;
     historial.push({ role: 'assistant', content: reply });
-
-    // Aquí hacemos que la página hable
-    hablar(reply);
 
     window.scrollTo(0, document.body.scrollHeight);
 
