@@ -73,6 +73,15 @@ const messages = document.getElementById("messages");
 const orb = document.getElementById("jarvis-orb");
 let historial = [];
 
+// Función para que la página hable
+function hablar(texto) {
+  const mensaje = new SpeechSynthesisUtterance(texto);
+  mensaje.lang = 'es-ES';
+  mensaje.rate = 1;
+  mensaje.pitch = 1;
+  window.speechSynthesis.speak(mensaje);
+}
+
 async function enviar() {
   const input = document.getElementById("input");
   const texto = input.value.trim();
@@ -98,6 +107,9 @@ async function enviar() {
     const reply = datos.choices[0].message.content;
     messages.innerHTML += `<div class="msg ai">${reply}</div>`;
     historial.push({ role: 'assistant', content: reply });
+
+    // Aquí hacemos que la página hable
+    hablar(reply);
 
     window.scrollTo(0, document.body.scrollHeight);
 
