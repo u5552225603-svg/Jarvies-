@@ -6,16 +6,23 @@
 <title>Jarvis</title>
 <style>
   * { box-sizing: border-box; }
-  body { 
-    font-family: 'Segoe UI', Roboto, Arial, sans-serif; 
-    background: #0a0a12; 
-    color: white; 
+  
+  /* FORZAMOS A QUE EL CUERPO DEJE ESPACIO ABAJO */
+  html, body { 
+    height: 100%; 
     margin: 0; 
     padding: 0; 
-    height: 100vh; 
+    background: #0a0a12;
+    color: white;
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif; 
+  }
+
+  body {
     display: flex; 
     flex-direction: column;
     overflow: hidden;
+    /* ESTO ES LA CLAVE: Un padding abajo del tamaño de la barra de android */
+    padding-bottom: 70px; 
   }
   
   #main-area {
@@ -25,21 +32,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Esto es para que en móviles no choque con la cámara superior */
-    padding-top: env(safe-area-inset-top, 20px); 
   }
 
-  /* Saludo central más pequeño y subido */
   #saludo {
-    margin-top: 20vh; /* Sube el texto un poco */
+    margin-top: 20vh; 
     text-align: center;
-    font-size: 26px; /* Más pequeño que antes (era 32px) */
+    font-size: 26px; 
     font-weight: 400;
     background: linear-gradient(90deg, #60a5fa, #a78bfa);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     padding: 0 20px;
-    transition: opacity 0.3s;
   }
 
   #messages {
@@ -67,14 +70,19 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Barra de escribir abajo, AHORA CON ESPACIO PARA LOS BOTONES DE ANDROID */
+  /* LA BARRA AHORA ESTÁ FIJADA A LA PANTALLA */
   #input-area {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     background: #0a0a12;
     padding: 15px;
-    padding-bottom: calc(20px + env(safe-area-inset-bottom)); /* AQUÍ ESTÁ LA MAGIA */
+    /* Le damos un margen extra para que quede por encima de los botones */
+    padding-bottom: 25px; 
     display: flex;
     justify-content: center;
-    width: 100%;
+    z-index: 100;
   }
 
   .input-wrapper {
@@ -152,22 +160,11 @@
     50% { transform: translateX(-50%) scale(1.2); }
     100% { transform: translateX(-50%) scale(1); }
   }
-  .particle {
-    position: fixed; width: 8px; height: 8px; border-radius: 50%;
-    background: #60a5fa; box-shadow: 0 0 10px #3b82f6;
-    pointer-events: none; z-index: 999; opacity: 0; animation: floatUp 3s ease-out forwards;
-  }
-  @keyframes floatUp {
-    0% { opacity: 1; transform: translateY(0) scale(1); }
-    70% { opacity: 0.8; transform: translateY(-80px) scale(1.2); }
-    100% { opacity: 0; transform: translateY(-120px) scale(0.8); }
-  }
 </style>
 </head>
 <body>
 
 <div id="main-area">
-  <!-- Aquí solo pondrá "Buenas tardes, señor" -->
   <div id="saludo">Buenas tardes, señor.</div>
   <div id="messages" style="display: none;"></div>
 </div>
@@ -190,7 +187,6 @@ const orb = document.getElementById("jarvis-orb");
 const inputField = document.getElementById("input");
 let historial = [];
 
-// Saludo dinámico sin la segunda frase
 function actualizarSaludo() {
   const hora = new Date().getHours();
   let texto = "Buenas noches, señor.";
@@ -204,7 +200,6 @@ async function enviar() {
   const texto = inputField.value.trim();
   if (!texto) return;
 
-  // Ocultar saludo y mostrar chat
   saludo.style.display = "none";
   messages.style.display = "flex";
 
@@ -260,35 +255,12 @@ async function enviar() {
   }
 }
 
-// Para que el móvil no se vuelva loco con el teclado al escribir
-window.addEventListener('resize', () => {
-  const mainArea = document.getElementById("main-area");
-  mainArea.scrollTop = mainArea.scrollHeight;
-});
-
 inputField.addEventListener("keypress", function(event) {
   if (event.key === "Enter") {
     event.preventDefault();
     enviar();
   }
 });
-
-function activarJarvis() {
-  orb.classList.add('active');
-  for (let i = 0; i < 12; i++) {
-    setTimeout(() => {
-      const p = document.createElement('div');
-      p.className = 'particle';
-      const x = Math.random() * window.innerWidth;
-      const y = window.innerHeight - 100 - Math.random() * 100;
-      p.style.left = x + 'px';
-      p.style.top = y + 'px';
-      document.body.appendChild(p);
-      setTimeout(() => p.remove(), 3000);
-    }, i * 150);
-  }
-  setTimeout(() => { orb.classList.remove('active'); }, 4000);
-}
 </script>
 </body>
 </html>
