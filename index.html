@@ -2,41 +2,49 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Jarvis</title>
 <style>
+  :root {
+    /* Si la barra queda muy pegada abajo, sube este valor. Si queda muy alta, bájalo. */
+    --margen-inferior: 16px;
+  }
+
   * { box-sizing: border-box; }
-  
-  html, body { 
-    height: 100%; 
-    margin: 0; 
-    padding: 0; 
+
+  html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
     background: #0a0a12;
-    color: white;
-    font-family: 'Segoe UI', Roboto, Arial, sans-serif; 
   }
 
   body {
-    display: flex; 
+    height: var(--app-height, 100dvh);
+    margin: 0;
+    padding: 0;
+    background: #0a0a12;
+    color: white;
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    display: flex;
     flex-direction: column;
     overflow: hidden;
   }
-  
+
   #main-area {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    padding: 20px;
+    padding: 20px 20px 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Dejamos un hueco abajo para que los mensajes no se escondan tras la barra */
-    padding-bottom: 120px; 
   }
 
   #saludo {
-    margin-top: 20vh; 
+    margin-top: 20vh;
     text-align: center;
-    font-size: 26px; 
+    font-size: 26px;
     font-weight: 400;
     background: linear-gradient(90deg, #60a5fa, #a78bfa);
     -webkit-background-clip: text;
@@ -52,35 +60,30 @@
     gap: 15px;
   }
 
-  .msg { 
-    padding: 14px 20px; 
-    border-radius: 20px; 
-    max-width: 85%; 
-    line-height: 1.6; 
+  .msg {
+    padding: 14px 20px;
+    border-radius: 20px;
+    max-width: 85%;
+    line-height: 1.6;
     font-size: 16px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
     animation: fadeIn 0.3s ease-out;
   }
   .user { background: #1e3a8a; margin-left: auto; border-bottom-right-radius: 4px; }
   .ai { background: #1f1f2e; border: 1px solid #2a2a3e; margin-right: auto; border-bottom-left-radius: 4px; }
-  
+
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* LA BARRA AHORA FLOTA Y TIENE MARGEN DE SEGURIDAD */
   #input-area {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    flex-shrink: 0;
     background: #0a0a12;
-    padding: 10px 15px;
-    /* Aquí está el truco: 80px de margen inferior para saltarse los botones de Android */
-    padding-bottom: 80px; 
+    padding: 10px 15px calc(var(--margen-inferior) + env(safe-area-inset-bottom, 0px));
     display: flex;
     justify-content: center;
-    z-index: 100;
   }
 
   .input-wrapper {
@@ -94,22 +97,23 @@
     align-items: center;
   }
 
-  input { 
-    flex: 1; 
+  input {
+    flex: 1;
+    min-width: 0;
     background: transparent;
-    border: none; 
-    color: white; 
+    border: none;
+    color: white;
     font-size: 16px;
     outline: none;
     padding: 10px 0;
   }
 
-  button { 
-    background: #3b82f6; 
-    border: none; 
-    border-radius: 50%; 
-    width: 45px; 
-    height: 45px; 
+  button {
+    background: #3b82f6;
+    border: none;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -156,7 +160,7 @@
 <div id="input-area">
   <div class="input-wrapper">
     <input id="input" placeholder="Pregunta lo que necesites..." autocomplete="off">
-    <button onclick="enviar()">
+    <button onclick="enviar()" aria-label="Enviar">
       <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
     </button>
   </div>
@@ -166,7 +170,20 @@
 const messages = document.getElementById("messages");
 const saludo = document.getElementById("saludo");
 const inputField = document.getElementById("input");
+const mainArea = document.getElementById("main-area");
 let historial = [];
+let enviando = false;
+
+// Ajusta la altura de la app a la zona realmente visible del navegador
+function ajustarAltura() {
+  const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  document.documentElement.style.setProperty('--app-height', h + 'px');
+  window.scrollTo(0, 0);
+}
+ajustarAltura();
+window.addEventListener('resize', ajustarAltura);
+window.addEventListener('orientationchange', ajustarAltura);
+if (window.visualViewport) window.visualViewport.addEventListener('resize', ajustarAltura);
 
 // Saludo dinámico
 function actualizarSaludo() {
@@ -174,29 +191,40 @@ function actualizarSaludo() {
   let texto = "Buenas noches, señor.";
   if (hora >= 6 && hora < 12) texto = "Buenos días, señor.";
   else if (hora >= 12 && hora < 20) texto = "Buenas tardes, señor.";
-  saludo.innerText = texto; 
+  saludo.innerText = texto;
 }
 actualizarSaludo();
 
+function bajar() {
+  mainArea.scrollTop = mainArea.scrollHeight;
+}
+
+function añadirMensaje(clase, texto) {
+  const div = document.createElement("div");
+  div.className = "msg " + clase;
+  div.textContent = texto;
+  messages.appendChild(div);
+  bajar();
+  return div;
+}
+
 async function enviar() {
   const texto = inputField.value.trim();
-  if (!texto) return;
+  if (!texto || enviando) return;
+  enviando = true;
 
   saludo.style.display = "none";
   messages.style.display = "flex";
 
-  messages.innerHTML += `<div class="msg user">${texto}</div>`;
+  añadirMensaje("user", texto);
   inputField.value = "";
   historial.push({ role: 'user', content: texto });
-
-  const mainArea = document.getElementById("main-area");
-  mainArea.scrollTop = mainArea.scrollHeight;
 
   const typingIndicator = document.createElement("div");
   typingIndicator.className = "typing";
   typingIndicator.innerHTML = `<div class="dot"></div><div class="dot"></div><div class="dot"></div>`;
   messages.appendChild(typingIndicator);
-  mainArea.scrollTop = mainArea.scrollHeight;
+  bajar();
 
   try {
     const respuesta = await fetch('https://jarvies-proxy.u5552225603.workers.dev', {
@@ -210,34 +238,36 @@ async function enviar() {
 
     const datos = await respuesta.json();
     const reply = datos.choices[0].message.content;
-    
+
     typingIndicator.remove();
 
     const aiBubble = document.createElement("div");
     aiBubble.className = "msg ai";
     messages.appendChild(aiBubble);
 
+    historial.push({ role: 'assistant', content: reply });
+
     let i = 0;
     function escribir() {
       if (i < reply.length) {
-        aiBubble.innerHTML += reply.charAt(i);
+        aiBubble.textContent += reply.charAt(i);
         i++;
-        mainArea.scrollTop = mainArea.scrollHeight;
-        setTimeout(escribir, 15); 
+        bajar();
+        setTimeout(escribir, 15);
+      } else {
+        enviando = false;
       }
     }
     escribir();
 
-    historial.push({ role: 'assistant', content: reply });
-
   } catch (error) {
     typingIndicator.remove();
-    messages.innerHTML += `<div class="msg ai">Disculpe, señor. Parece que hay un problema de conexión.</div>`;
-    mainArea.scrollTop = mainArea.scrollHeight;
+    añadirMensaje("ai", "Disculpe, señor. Parece que hay un problema de conexión.");
+    enviando = false;
   }
 }
 
-inputField.addEventListener("keypress", function(event) {
+inputField.addEventListener("keydown", function(event) {
   if (event.key === "Enter") {
     event.preventDefault();
     enviar();
