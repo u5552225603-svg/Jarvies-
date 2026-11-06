@@ -6,7 +6,6 @@
 <title>Jarvis</title>
 <style>
   :root {
-    /* Si la barra queda muy pegada abajo, sube este valor. Si queda muy alta, bájalo. */
     --margen-inferior: 16px;
   }
 
@@ -16,14 +15,15 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    background: #0a0a12;
+    /* COLOR AZUL ESPACIAL */
+    background: #0f172a;
   }
 
   body {
     height: var(--app-height, 100dvh);
     margin: 0;
     padding: 0;
-    background: #0a0a12;
+    background: #0f172a;
     color: white;
     font-family: 'Segoe UI', Roboto, Arial, sans-serif;
     display: flex;
@@ -80,7 +80,8 @@
 
   #input-area {
     flex-shrink: 0;
-    background: #0a0a12;
+    /* COLOR AZUL ESPACIAL TAMBIÉN EN LA BARRA */
+    background: #0f172a;
     padding: 10px 15px calc(var(--margen-inferior) + env(safe-area-inset-bottom, 0px));
     display: flex;
     justify-content: center;
@@ -174,7 +175,6 @@ const mainArea = document.getElementById("main-area");
 let historial = [];
 let enviando = false;
 
-// Ajusta la altura de la app a la zona realmente visible del navegador
 function ajustarAltura() {
   const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
   document.documentElement.style.setProperty('--app-height', h + 'px');
@@ -185,7 +185,6 @@ window.addEventListener('resize', ajustarAltura);
 window.addEventListener('orientationchange', ajustarAltura);
 if (window.visualViewport) window.visualViewport.addEventListener('resize', ajustarAltura);
 
-// Saludo dinámico
 function actualizarSaludo() {
   const hora = new Date().getHours();
   let texto = "Buenas noches, señor.";
