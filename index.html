@@ -18,7 +18,6 @@
     overflow: hidden;
   }
   
-  /* Contenedor central (el saludo o los mensajes) */
   #main-area {
     flex: 1;
     overflow-y: auto;
@@ -26,19 +25,21 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    /* Esto es para que en móviles no choque con la cámara superior */
+    padding-top: env(safe-area-inset-top, 20px); 
   }
 
-  /* El saludo central estilo Gemini */
+  /* Saludo central más pequeño y subido */
   #saludo {
-    margin-top: auto;
-    margin-bottom: auto;
+    margin-top: 20vh; /* Sube el texto un poco */
     text-align: center;
-    font-size: 32px;
+    font-size: 26px; /* Más pequeño que antes (era 32px) */
     font-weight: 400;
     background: linear-gradient(90deg, #60a5fa, #a78bfa);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     padding: 0 20px;
+    transition: opacity 0.3s;
   }
 
   #messages {
@@ -50,38 +51,30 @@
     padding-bottom: 20px;
   }
 
-  /* Burbujas de chat */
   .msg { 
     padding: 14px 20px; 
     border-radius: 20px; 
     max-width: 85%; 
     line-height: 1.6; 
-    font-size: 16px; /* Letra más grande como pediste */
+    font-size: 16px;
     animation: fadeIn 0.3s ease-out;
   }
-  .user { 
-    background: #1e3a8a; 
-    margin-left: auto; 
-    border-bottom-right-radius: 4px;
-  }
-  .ai { 
-    background: #1f1f2e; 
-    border: 1px solid #2a2a3e;
-    margin-right: auto;
-    border-bottom-left-radius: 4px;
-  }
+  .user { background: #1e3a8a; margin-left: auto; border-bottom-right-radius: 4px; }
+  .ai { background: #1f1f2e; border: 1px solid #2a2a3e; margin-right: auto; border-bottom-left-radius: 4px; }
+  
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Barra de escribir abajo (estilo Gemini) */
+  /* Barra de escribir abajo, AHORA CON ESPACIO PARA LOS BOTONES DE ANDROID */
   #input-area {
     background: #0a0a12;
     padding: 15px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom)); /* AQUÍ ESTÁ LA MAGIA */
     display: flex;
     justify-content: center;
-    padding-bottom: max(15px, env(safe-area-inset-bottom));
+    width: 100%;
   }
 
   .input-wrapper {
@@ -102,6 +95,7 @@
     color: white; 
     font-size: 16px;
     outline: none;
+    padding: 10px 0;
   }
 
   button { 
@@ -116,11 +110,11 @@
     cursor: pointer;
     margin-left: 10px;
     transition: 0.2s;
+    flex-shrink: 0;
   }
   button:active { background: #2563eb; transform: scale(0.95); }
   button svg { width: 20px; height: 20px; fill: white; }
 
-  /* El indicador de "pensando" (las 3 bolitas) */
   .typing {
     display: flex;
     gap: 5px;
@@ -145,9 +139,8 @@
     40% { transform: scale(1); }
   }
 
-  /* Efectos de la bola azul (se mantienen de tu código original) */
   #jarvis-orb {
-    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
     width: 80px; height: 80px; border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, #60a5fa, #2563eb, #1e3a8a);
     box-shadow: 0 0 30px #3b82f6, 0 0 60px #2563eb, inset 0 0 20px #60a5fa;
@@ -174,7 +167,8 @@
 <body>
 
 <div id="main-area">
-  <div id="saludo">Buenas tardes, señor.<br>¿Por dónde empezamos?</div>
+  <!-- Aquí solo pondrá "Buenas tardes, señor" -->
+  <div id="saludo">Buenas tardes, señor.</div>
   <div id="messages" style="display: none;"></div>
 </div>
 
@@ -182,7 +176,6 @@
   <div class="input-wrapper">
     <input id="input" placeholder="Pregunta lo que necesites..." autocomplete="off">
     <button onclick="enviar()">
-      <!-- Icono de flecha de enviar -->
       <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
     </button>
   </div>
@@ -197,13 +190,13 @@ const orb = document.getElementById("jarvis-orb");
 const inputField = document.getElementById("input");
 let historial = [];
 
-// Cambiar el saludo según la hora
+// Saludo dinámico sin la segunda frase
 function actualizarSaludo() {
   const hora = new Date().getHours();
   let texto = "Buenas noches, señor.";
   if (hora >= 6 && hora < 12) texto = "Buenos días, señor.";
   else if (hora >= 12 && hora < 20) texto = "Buenas tardes, señor.";
-  saludo.innerHTML = texto + "<br>¿Por dónde empezamos?";
+  saludo.innerText = texto; 
 }
 actualizarSaludo();
 
@@ -219,11 +212,9 @@ async function enviar() {
   inputField.value = "";
   historial.push({ role: 'user', content: texto });
 
-  // Bajar scroll
   const mainArea = document.getElementById("main-area");
   mainArea.scrollTop = mainArea.scrollHeight;
 
-  // Mostrar bolitas de "pensando"
   const typingIndicator = document.createElement("div");
   typingIndicator.className = "typing";
   typingIndicator.innerHTML = `<div class="dot"></div><div class="dot"></div><div class="dot"></div>`;
@@ -243,22 +234,19 @@ async function enviar() {
     const datos = await respuesta.json();
     const reply = datos.choices[0].message.content;
     
-    // Quitar bolitas
     typingIndicator.remove();
 
-    // Crear burbuja de IA (vacía al principio para el efecto máquina de escribir)
     const aiBubble = document.createElement("div");
     aiBubble.className = "msg ai";
     messages.appendChild(aiBubble);
 
-    // Efecto máquina de escribir
     let i = 0;
     function escribir() {
       if (i < reply.length) {
         aiBubble.innerHTML += reply.charAt(i);
         i++;
         mainArea.scrollTop = mainArea.scrollHeight;
-        setTimeout(escribir, 15); // Velocidad (15ms por letra)
+        setTimeout(escribir, 15); 
       }
     }
     escribir();
@@ -272,7 +260,12 @@ async function enviar() {
   }
 }
 
-// Enviar con Enter
+// Para que el móvil no se vuelva loco con el teclado al escribir
+window.addEventListener('resize', () => {
+  const mainArea = document.getElementById("main-area");
+  mainArea.scrollTop = mainArea.scrollHeight;
+});
+
 inputField.addEventListener("keypress", function(event) {
   if (event.key === "Enter") {
     event.preventDefault();
@@ -280,7 +273,6 @@ inputField.addEventListener("keypress", function(event) {
   }
 });
 
-// Efecto de la bola (sigue igual para cuando pongamos voz)
 function activarJarvis() {
   orb.classList.add('active');
   for (let i = 0; i < 12; i++) {
