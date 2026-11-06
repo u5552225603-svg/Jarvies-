@@ -148,48 +148,33 @@
     40% { transform: scale(1); }
   }
 
-  /* ESTILO MODO HACKER */
+  /* ESTILO MODO HACKER ARRIBA A LA IZQUIERDA (SIN PUNTO) */
   #hud-status {
     position: fixed;
-    bottom: 85px;
+    top: max(20px, env(safe-area-inset-top, 20px));
     left: 20px;
     font-size: 11px;
     font-family: monospace;
     color: #60a5fa;
     letter-spacing: 1px;
-    opacity: 0.7;
+    opacity: 0.5; /* Un poco transparente */
     z-index: 10;
     pointer-events: none;
     text-transform: uppercase;
-  }
-  
-  .dot-green {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    background-color: #22c55e;
-    border-radius: 50%;
-    margin-right: 5px;
-    box-shadow: 0 0 5px #22c55e;
-    animation: parpadeo 1.5s infinite;
-  }
-
-  @keyframes parpadeo {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.2; }
+    transition: opacity 0.3s;
   }
 </style>
 </head>
 <body>
 
+<!-- EL NUEVO HUD ARRIBA A LA IZQUIERDA -->
+<div id="hud-status">
+  SISTEMA 100% OPERATIVO
+</div>
+
 <div id="main-area">
   <div id="saludo">Buenas tardes, señor.</div>
   <div id="messages" style="display: none;"></div>
-</div>
-
-<!-- AQUÍ ESTÁ EL MODO HACKER -->
-<div id="hud-status">
-  <span class="dot-green"></span> SISTEMA ONLINE <span id="hora-sistema">00:00:00</span>
 </div>
 
 <div id="input-area">
@@ -206,6 +191,7 @@ const messages = document.getElementById("messages");
 const saludo = document.getElementById("saludo");
 const inputField = document.getElementById("input");
 const mainArea = document.getElementById("main-area");
+const hudStatus = document.getElementById("hud-status");
 let historial = [];
 let enviando = false;
 
@@ -228,17 +214,6 @@ function actualizarSaludo() {
 }
 actualizarSaludo();
 
-// RELOJ DEL SISTEMA
-function actualizarHoraSistema() {
-  const ahora = new Date();
-  const horas = String(ahora.getHours()).padStart(2, '0');
-  const minutos = String(ahora.getMinutes()).padStart(2, '0');
-  const segundos = String(ahora.getSeconds()).padStart(2, '0');
-  document.getElementById('hora-sistema').innerText = `${horas}:${minutos}:${segundos}`;
-}
-setInterval(actualizarHoraSistema, 1000);
-actualizarHoraSistema();
-
 function bajar() {
   mainArea.scrollTop = mainArea.scrollHeight;
 }
@@ -256,6 +231,9 @@ async function enviar() {
   const texto = inputField.value.trim();
   if (!texto || enviando) return;
   enviando = true;
+
+  // EL HUD DESAPARECE AL ESCRIBIR
+  hudStatus.style.opacity = "0"; 
 
   saludo.style.display = "none";
   messages.style.display = "flex";
